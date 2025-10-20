@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "**" ]
 
 jobs:
   build:
@@ -14,7 +14,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11.2'
+          python-version: '3.11'
 
       - name: Run hello.py
         run: python3 hello.py
