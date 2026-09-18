@@ -1,0 +1,68 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+
+    relabel_configs:
+      # Only scrape containers created by Nomad
+      - source_labels:
+          - __meta_docker_container_label_com_hashicorp_nomad_alloc_id
+        regex: ".+"
+        action: keep
+
+      # Docker container name
+      - source_labels:
+          - __meta_docker_container_name
+        regex: "/(.*)"
+        replacement: "$1"
+        target_label: container
+
+      # Nomad allocation ID from Docker metadata
+      - source_labels:
+          - __meta_docker_container_label_com_hashicorp_nomad_alloc_id
+        target_label: nomad_alloc_id
+
+      # Application/job identifier
+      - replacement: "nginx-app"
+        target_label: job
+
+      # Service identifier
+      - replacement: "nginx"
+        target_label: service_name
+
+# scrape_configs:
+#   - job_name: docker
+
+#     docker_sd_configs:
+#       - host: unix:///var/run/docker.sock
+#         refresh_interval: 5s
+
+#     relabel_configs:
+#       - source_labels:
+#           - __meta_docker_container_name
+#         regex: "/(.*)"
+#         target_label: container
+
+#       - source_labels:
+#           - __meta_docker_container_label_com_hashicorp_nomad_job_name
+#         target_label: job
+
+#       - source_labels:
+#           - __meta_docker_container_label_com_hashicorp_nomad_alloc_id
+#         target_label: nomad_alloc_id
+
+#       - source_labels:
+#           - __meta_docker_container_label_com_hashicorp_nomad_task_name
+#         target_label: service
